@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,9 +23,16 @@ public class JwtRoleConverter implements Converter<Jwt, AbstractAuthenticationTo
         log.debug("Converting JWT to Authentication token");
         List<String> roles = jwt.getClaimAsStringList("roles");
         log.debug("Found roles in JWT: {}", roles);
-        Collection<GrantedAuthority> authorities = roles.stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                .collect(Collectors.toList());
+
+        Collection<GrantedAuthority> authorities;
+        if (roles != null && !roles.isEmpty()) {
+            authorities = roles.stream()
+                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                    .collect(Collectors.toList());
+        } else {
+            authorities = Collections.emptyList();
+        }
+
         log.debug("Created authorities: {}", authorities);
         return new JwtAuthenticationToken(jwt, authorities);
     }
